@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>C64 Remote Controller</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <!-- Header -->
+        <header id="top-bar">
+            <span class="logo">🕹️ C64 REMOTE CONTROLLER</span>
+            <div class="actions">
+                <button id="btn-fullscreen" class="icon-btn" title="Schermo intero">⛶</button>
+            </div>
+        </header>
+
+        <!-- Video Screen Container -->
+        <div id="video-wrapper">
+            <video id="gameVideo" autoplay playsinline></video>
+            
+            <!-- Connection & Status Overlay -->
+            <div id="status-overlay">
+                <div class="card">
+                    <h2>🎮 Unisciti alla Partita</h2>
+                    <p id="status-message">Inserisci l'ID Stanza fornito dal Giocatore 1:</p>
+                    <div id="join-form">
+                        <input type="text" id="room-input" placeholder="Es. c64-abc12" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                        <button id="btn-connect" class="btn btn-primary">Entra in Partita</button>
+                    </div>
+                    <div id="loader" class="spinner hidden"></div>
+                </div>
+            </div>
+
+            <!-- Audio Unmute Prompt -->
+            <div id="audio-prompt" class="hidden">
+                <button id="btn-unmute">🔊 Clicca qui per attivare l'Audio</button>
+            </div>
+
+            <!-- In-Game Status Notification Banner -->
+            <div id="game-banner" class="hidden"></div>
+        </div>
+
+        <!-- Touch / On-Screen Controls for Mobile/Tablet -->
+        <div id="virtual-controls">
+            <div class="dpad-container">
+                <button id="btn-up" class="dpad-btn up" data-key="ArrowUp">▲</button>
+                <div class="dpad-middle">
+                    <button id="btn-left" class="dpad-btn left" data-key="ArrowLeft">◄</button>
+                    <div class="dpad-center"></div>
+                    <button id="btn-right" class="dpad-btn right" data-key="ArrowRight">►</button>
+                </div>
+                <button id="btn-down" class="dpad-btn down" data-key="ArrowDown">▼</button>
+            </div>
+
+            <div class="action-container">
+                <button id="btn-fire" class="fire-btn" data-key="Space">FIRE / KICK<br><small>(SPAZIO)</small></button>
+            </div>
+        </div>
+
+        <!-- Footer / Instructions -->
+        <footer id="footer-info">
+            <span>⌨️ <b>Tastiera PC:</b> Frecce (▲ ▼ ◄ ►) per muoverti, <b>Spazio</b> per il tiro / azione.</span>
+        </footer>
+    </div>
+
+    <script src="peerjs.min.js"></script>
+    <script src="remote.js"></script>
+</body>
+</html>
