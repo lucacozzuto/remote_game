@@ -164,6 +164,18 @@
         }
     });
 
+    // Size toggle (3X vs 2X)
+    const btnToggleSize = document.getElementById('btn-toggle-size');
+    if (btnToggleSize) {
+        let is2X = false;
+        btnToggleSize.addEventListener('click', (e) => {
+            e.preventDefault();
+            is2X = !is2X;
+            gameVideo.classList.toggle('size-2x', is2X);
+            btnToggleSize.innerText = is2X ? '🔍 Dimensione: 2X' : '🔍 Dimensione: 3X';
+        });
+    }
+
     // Connect button click
     btnConnect.addEventListener('click', () => {
         connectToHost(roomInput.value);
