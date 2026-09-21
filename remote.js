@@ -52,9 +52,69 @@
         }
     }
 
+    // Mapping from DOM event.code to Commodore 64 8x8 CIA1 Keyboard Matrix indices (0-63)
+    const C64_KEY_MATRIX_MAP = {
+        // Letters (A-Z)
+        'KeyA': 31, 'KeyB': 50, 'KeyC': 48, 'KeyD': 33, 'KeyE': 19,
+        'KeyF': 34, 'KeyG': 35, 'KeyH': 36, 'KeyI': 24, 'KeyJ': 37,
+        'KeyK': 38, 'KeyL': 39, 'KeyM': 52, 'KeyN': 51, 'KeyO': 25,
+        'KeyP': 26, 'KeyQ': 17, 'KeyR': 20, 'KeyS': 32, 'KeyT': 21,
+        'KeyU': 23, 'KeyV': 49, 'KeyW': 18, 'KeyX': 47, 'KeyY': 22, 'KeyZ': 46,
+
+        // Digits (0-9)
+        'Digit0': 10, 'Digit1': 1, 'Digit2': 2, 'Digit3': 3, 'Digit4': 4,
+        'Digit5': 5, 'Digit6': 6, 'Digit7': 7, 'Digit8': 8, 'Digit9': 9,
+
+        // Controls & Editing
+        'Enter': 43,
+        'NumpadEnter': 43,
+        'Space': 59,
+        'Backspace': 15,
+        'Delete': 15,
+        'Escape': 30,
+
+        // Function keys
+        'F1': 60, 'F2': 60,
+        'F3': 61, 'F4': 61,
+        'F5': 62, 'F6': 62,
+        'F7': 63, 'F8': 63,
+
+        // Modifiers & Punctuation
+        'ShiftLeft': 45, 'ShiftRight': 56,
+        'Period': 54, 'Comma': 53, 'Slash': 55, 'Equal': 42, 'Minus': 12, 'Semicolon': 41
+    };
+
+    const C64_CHAR_FALLBACK = {
+        'A': 31, 'B': 50, 'C': 48, 'D': 33, 'E': 19,
+        'F': 34, 'G': 35, 'H': 36, 'I': 24, 'J': 37,
+        'K': 38, 'L': 39, 'M': 52, 'N': 51, 'O': 25,
+        'P': 26, 'Q': 17, 'R': 20, 'S': 32, 'T': 21,
+        'U': 23, 'V': 49, 'W': 18, 'X': 47, 'Y': 22, 'Z': 46,
+        '0': 10, '1': 1, '2': 2, '3': 3, '4': 4,
+        '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+        ' ': 59, 'ENTER': 43, 'BACKSPACE': 15
+    };
+
+    function getC64MatrixIndex(e) {
+        if (C64_KEY_MATRIX_MAP[e.code] !== undefined) {
+            return C64_KEY_MATRIX_MAP[e.code];
+        }
+        const upperKey = (e.key || '').toUpperCase();
+        if (C64_CHAR_FALLBACK[upperKey] !== undefined) {
+            return C64_CHAR_FALLBACK[upperKey];
+        }
+        return undefined;
+    }
+
     function sendKeyPress(keyCode) {
         if (conn && conn.open) {
             conn.send({ type: 'KEY_PRESS', keyCode });
+        }
+    }
+
+    function sendC64Key(matrixIndex, action) {
+        if (conn && conn.open) {
+            conn.send({ type: 'C64_KEY', action, matrixIndex });
         }
     }
 
@@ -187,69 +247,95 @@
         }
     });
 
-    // Keyboard handlers
+    // Keyboard handlers (Real-time C64 Matrix key dispatch + Joystick)
     window.addEventListener('keydown', (e) => {
-        if (e.repeat) return;
-        let changed = false;
+        // Do not intercept if typing into the connect form input
+        if (document.activeElement === roomInput) return;
 
-        switch (e.code) {
-            case 'ArrowUp':
-            case 'KeyW':
-                inputState.up = true; changed = true; break;
-            case 'ArrowDown':
-            case 'KeyS':
-                inputState.down = true; changed = true; break;
-            case 'ArrowLeft':
-            case 'KeyA':
-                inputState.left = true; changed = true; break;
-            case 'ArrowRight':
-            case 'KeyD':
-                inputState.right = true; changed = true; break;
-            case 'Space':
-            case 'Enter':
-                inputState.fire = true; changed = true; break;
-            case 'F1':
-                sendKeyPress(60); break;
-            case 'F3':
-                sendKeyPress(61); break;
-            case 'F5':
-                sendKeyPress(62); break;
-            case 'F7':
-                sendKeyPress(63); break;
+        if (e.key.startsWith('Arrow') || e.key === ' ' || e.key.startsWith('F') || e.key === 'Enter' || e.key === 'Backspace') {
+            e.preventDefault();
+        }
+
+        // 1. Dispatch C64 Matrix key event to Host
+        const matrixIndex = getC64MatrixIndex(e);
+        if (matrixIndex !== undefined) {
+            sendC64Key(matrixIndex, 'down');
+        }
+
+        // 2. Joystick directional state for Player 2
+        let changed = false;
+        if (e.code === 'ArrowUp') {
+            if (!inputState.up) { inputState.up = true; changed = true; }
+        } else if (e.code === 'ArrowDown') {
+            if (!inputState.down) { inputState.down = true; changed = true; }
+        } else if (e.code === 'ArrowLeft') {
+            if (!inputState.left) { inputState.left = true; changed = true; }
+        } else if (e.code === 'ArrowRight') {
+            if (!inputState.right) { inputState.right = true; changed = true; }
+        } else if (e.code === 'Space' || e.code === 'Enter') {
+            if (!inputState.fire) { inputState.fire = true; changed = true; }
         }
 
         if (changed) {
-            e.preventDefault();
             updateAndSendInput();
         }
     });
 
     window.addEventListener('keyup', (e) => {
-        let changed = false;
+        if (document.activeElement === roomInput) return;
 
-        switch (e.code) {
-            case 'ArrowUp':
-            case 'KeyW':
-                inputState.up = false; changed = true; break;
-            case 'ArrowDown':
-            case 'KeyS':
-                inputState.down = false; changed = true; break;
-            case 'ArrowLeft':
-            case 'KeyA':
-                inputState.left = false; changed = true; break;
-            case 'ArrowRight':
-            case 'KeyD':
-                inputState.right = false; changed = true; break;
-            case 'Space':
-            case 'Enter':
-                inputState.fire = false; changed = true; break;
+        if (e.key.startsWith('Arrow') || e.key === ' ' || e.key.startsWith('F') || e.key === 'Enter' || e.key === 'Backspace') {
+            e.preventDefault();
+        }
+
+        const matrixIndex = getC64MatrixIndex(e);
+        if (matrixIndex !== undefined) {
+            sendC64Key(matrixIndex, 'up');
+        }
+
+        let changed = false;
+        if (e.code === 'ArrowUp') {
+            if (inputState.up) { inputState.up = false; changed = true; }
+        } else if (e.code === 'ArrowDown') {
+            if (inputState.down) { inputState.down = false; changed = true; }
+        } else if (e.code === 'ArrowLeft') {
+            if (inputState.left) { inputState.left = false; changed = true; }
+        } else if (e.code === 'ArrowRight') {
+            if (inputState.right) { inputState.right = false; changed = true; }
+        } else if (e.code === 'Space' || e.code === 'Enter') {
+            if (inputState.fire) { inputState.fire = false; changed = true; }
         }
 
         if (changed) {
-            e.preventDefault();
             updateAndSendInput();
         }
     });
+
+    // Mobile / On-Screen Keyboard toggle
+    const btnKeyboard = document.getElementById('btn-keyboard');
+    const mobileKeyboardInput = document.getElementById('mobile-keyboard-input');
+    if (btnKeyboard && mobileKeyboardInput) {
+        btnKeyboard.addEventListener('click', (e) => {
+            e.preventDefault();
+            mobileKeyboardInput.focus();
+            showBanner("⌨️ Tastiera mobile attiva: digita i nomi!", 3000);
+        });
+
+        mobileKeyboardInput.addEventListener('keydown', (e) => {
+            const matrixIndex = getC64MatrixIndex(e);
+            if (matrixIndex !== undefined) {
+                sendC64Key(matrixIndex, 'down');
+            }
+        });
+
+        mobileKeyboardInput.addEventListener('keyup', (e) => {
+            const matrixIndex = getC64MatrixIndex(e);
+            if (matrixIndex !== undefined) {
+                sendC64Key(matrixIndex, 'up');
+            }
+            mobileKeyboardInput.value = '';
+        });
+    }
 
     // Touch virtual buttons
     const bindTouchBtn = (id, stateKey) => {
