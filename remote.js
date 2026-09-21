@@ -164,17 +164,17 @@
         }
     });
 
-    // Size toggle (3X vs 2X)
-    const btnToggleSize = document.getElementById('btn-toggle-size');
-    if (btnToggleSize) {
-        let is2X = false;
-        btnToggleSize.addEventListener('click', (e) => {
+    // Size Selector (1X, 2X, 3X, Fit)
+    const sizeButtons = document.querySelectorAll('.btn-size');
+    sizeButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
-            is2X = !is2X;
-            gameVideo.classList.toggle('size-2x', is2X);
-            btnToggleSize.innerText = is2X ? '🔍 Dimensione: 2X' : '🔍 Dimensione: 3X';
+            sizeButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const size = btn.dataset.size;
+            gameVideo.className = 'size-' + size;
         });
-    }
+    });
 
     // Connect button click
     btnConnect.addEventListener('click', () => {

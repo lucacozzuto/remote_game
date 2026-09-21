@@ -12,14 +12,20 @@
         <header id="top-bar">
             <span class="logo">🕹️ C64 REMOTE CONTROLLER</span>
             <div class="actions">
-                <button id="btn-toggle-size" class="icon-btn" title="Cambia dimensione">🔍 Dimensione: 3X</button>
+                <div class="size-selector">
+                    <span class="size-label">Dimensione:</span>
+                    <button class="btn-size" data-size="1x">1X</button>
+                    <button class="btn-size" data-size="2x">2X</button>
+                    <button class="btn-size active" data-size="3x">3X (1152px)</button>
+                    <button class="btn-size" data-size="fit">Adatta</button>
+                </div>
                 <button id="btn-fullscreen" class="icon-btn" title="Schermo intero">⛶</button>
             </div>
         </header>
 
         <!-- Video Screen Container -->
         <div id="video-wrapper">
-            <video id="gameVideo" autoplay playsinline></video>
+            <video id="gameVideo" class="size-3x" autoplay playsinline></video>
             
             <!-- Connection & Status Overlay -->
             <div id="status-overlay">

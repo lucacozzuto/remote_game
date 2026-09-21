@@ -19,9 +19,8 @@ body {
 #app-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
     width: 100%;
-    max-width: 960px;
     margin: 0 auto;
 }
 
@@ -32,6 +31,8 @@ body {
     padding: 8px 16px;
     background: #161b22;
     border-bottom: 2px solid #30363d;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .logo {
@@ -41,6 +42,51 @@ body {
     color: #58a6ff;
 }
 
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.size-selector {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 2px 4px;
+}
+
+.size-label {
+    font-size: 0.75rem;
+    color: #8b949e;
+    padding: 0 4px;
+}
+
+.btn-size {
+    background: transparent;
+    border: none;
+    color: #c9d1d9;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-size:hover {
+    background: #21262d;
+    color: #fff;
+}
+
+.btn-size.active {
+    background: #1f6feb;
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(31, 111, 235, 0.4);
+}
+
 .icon-btn {
     background: #21262d;
     border: 1px solid #30363d;
@@ -48,7 +94,7 @@ body {
     padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.9rem;
 }
 
 .icon-btn:hover {
@@ -62,27 +108,46 @@ body {
     justify-content: center;
     align-items: center;
     background: #000;
-    overflow: hidden;
-    min-height: 240px;
+    overflow: auto;
+    padding: 10px;
+    min-height: 300px;
 }
 
 #gameVideo {
-    width: 1152px;
-    height: 816px;
-    max-width: 95vw;
-    max-height: 85vh;
     aspect-ratio: 384 / 272;
     object-fit: contain;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(88, 166, 255, 0.35);
     border-radius: 4px;
-    transition: width 0.2s ease, height 0.2s ease;
+    transition: width 0.15s ease, height 0.15s ease;
+    flex-shrink: 0;
 }
 
+/* 1X: True native C64 resolution */
+#gameVideo.size-1x {
+    width: 384px;
+    height: 272px;
+}
+
+/* 2X: Crisp doubled resolution */
 #gameVideo.size-2x {
     width: 768px;
     height: 544px;
+}
+
+/* 3X: Authentic 1152x816 display (Default) */
+#gameVideo.size-3x {
+    width: 1152px;
+    height: 816px;
+    max-width: 98vw;
+}
+
+/* Fit to screen */
+#gameVideo.size-fit {
+    width: 95vw;
+    height: 80vh;
+    max-width: 100%;
 }
 
 #status-overlay {
