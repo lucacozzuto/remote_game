@@ -62,8 +62,10 @@
         'KeyU': 23, 'KeyV': 49, 'KeyW': 18, 'KeyX': 47, 'KeyY': 22, 'KeyZ': 46,
 
         // Digits (0-9)
-        'Digit0': 10, 'Digit1': 1, 'Digit2': 2, 'Digit3': 3, 'Digit4': 4,
-        'Digit5': 5, 'Digit6': 6, 'Digit7': 7, 'Digit8': 8, 'Digit9': 9,
+        'Digit0': 1, 'Digit1': 2, 'Digit2': 3, 'Digit3': 4, 'Digit4': 5,
+        'Digit5': 6, 'Digit6': 7, 'Digit7': 8, 'Digit8': 9, 'Digit9': 10,
+        'Numpad0': 1, 'Numpad1': 2, 'Numpad2': 3, 'Numpad3': 4, 'Numpad4': 5,
+        'Numpad5': 6, 'Numpad6': 7, 'Numpad7': 8, 'Numpad8': 9, 'Numpad9': 10,
 
         // Controls & Editing
         'Enter': 43,
@@ -90,8 +92,8 @@
         'K': 38, 'L': 39, 'M': 52, 'N': 51, 'O': 25,
         'P': 26, 'Q': 17, 'R': 20, 'S': 32, 'T': 21,
         'U': 23, 'V': 49, 'W': 18, 'X': 47, 'Y': 22, 'Z': 46,
-        '0': 10, '1': 1, '2': 2, '3': 3, '4': 4,
-        '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+        '0': 1, '1': 2, '2': 3, '3': 4, '4': 5,
+        '5': 6, '6': 7, '7': 8, '8': 9, '9': 10,
         ' ': 59, 'ENTER': 43, 'BACKSPACE': 15
     };
 
@@ -272,7 +274,7 @@
             if (!inputState.left) { inputState.left = true; changed = true; }
         } else if (e.code === 'ArrowRight') {
             if (!inputState.right) { inputState.right = true; changed = true; }
-        } else if (e.code === 'Space' || e.code === 'Enter') {
+        } else if (e.code === 'Space') {
             if (!inputState.fire) { inputState.fire = true; changed = true; }
         }
 
@@ -302,7 +304,7 @@
             if (inputState.left) { inputState.left = false; changed = true; }
         } else if (e.code === 'ArrowRight') {
             if (inputState.right) { inputState.right = false; changed = true; }
-        } else if (e.code === 'Space' || e.code === 'Enter') {
+        } else if (e.code === 'Space') {
             if (inputState.fire) { inputState.fire = false; changed = true; }
         }
 
@@ -328,10 +330,15 @@
             }
         });
 
-        mobileKeyboardInput.addEventListener('keyup', (e) => {
-            const matrixIndex = getC64MatrixIndex(e);
-            if (matrixIndex !== undefined) {
-                sendC64Key(matrixIndex, 'up');
+        mobileKeyboardInput.addEventListener('input', (e) => {
+            const val = mobileKeyboardInput.value;
+            if (val) {
+                const lastChar = val.slice(-1).toUpperCase();
+                const matrixIndex = C64_CHAR_FALLBACK[lastChar];
+                if (matrixIndex !== undefined) {
+                    sendC64Key(matrixIndex, 'down');
+                    setTimeout(() => sendC64Key(matrixIndex, 'up'), 100);
+                }
             }
             mobileKeyboardInput.value = '';
         });
