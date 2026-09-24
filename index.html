@@ -44,16 +44,17 @@
 
         <!-- Main Screen & Flanking Controls Area -->
         <div id="gameplay-area">
-            <!-- LEFT CONTROLS: D-PAD (Left Thumb) -->
+            <!-- LEFT CONTROLS: FIRE & ACTIONS (Left Thumb) -->
             <div id="controls-left" class="controller-flank">
-                <div class="dpad-box">
-                    <button id="btn-up" class="dpad-btn dpad-up" data-key="ArrowUp" aria-label="Su">▲</button>
-                    <div class="dpad-row">
-                        <button id="btn-left" class="dpad-btn dpad-left" data-key="ArrowLeft" aria-label="Sinistra">◄</button>
-                        <div class="dpad-core"></div>
-                        <button id="btn-right" class="dpad-btn dpad-right" data-key="ArrowRight" aria-label="Destra">►</button>
+                <div class="action-box">
+                    <button id="btn-fire" class="fire-btn" data-key="Space">
+                        <span class="fire-title">FIRE</span>
+                        <span class="fire-sub">TIRO / ACCEL</span>
+                    </button>
+                    <div class="sub-actions">
+                        <button id="btn-enter" class="sub-btn enter-btn" data-key="Enter" title="Conferma / Invio">INVIO</button>
+                        <button id="btn-f5" class="sub-btn f-btn" data-key="F5" title="Opzioni / F5">F5</button>
                     </div>
-                    <button id="btn-down" class="dpad-btn dpad-down" data-key="ArrowDown" aria-label="Giu">▼</button>
                 </div>
             </div>
 
@@ -80,17 +81,16 @@
                 </div>
             </div>
 
-            <!-- RIGHT CONTROLS: FIRE & ACTIONS (Right Thumb) -->
+            <!-- RIGHT CONTROLS: D-PAD (Right Thumb) -->
             <div id="controls-right" class="controller-flank">
-                <div class="action-box">
-                    <button id="btn-fire" class="fire-btn" data-key="Space">
-                        <span class="fire-title">FIRE</span>
-                        <span class="fire-sub">TIRO / ACCEL</span>
-                    </button>
-                    <div class="sub-actions">
-                        <button id="btn-enter" class="sub-btn enter-btn" data-key="Enter" title="Conferma / Invio">INVIO</button>
-                        <button id="btn-f5" class="sub-btn f-btn" data-key="F5" title="Opzioni / F5">F5</button>
+                <div class="dpad-box">
+                    <button id="btn-up" class="dpad-btn dpad-up" data-key="ArrowUp" aria-label="Su">▲</button>
+                    <div class="dpad-row">
+                        <button id="btn-left" class="dpad-btn dpad-left" data-key="ArrowLeft" aria-label="Sinistra">◄</button>
+                        <div class="dpad-core"></div>
+                        <button id="btn-right" class="dpad-btn dpad-right" data-key="ArrowRight" aria-label="Destra">►</button>
                     </div>
+                    <button id="btn-down" class="dpad-btn dpad-down" data-key="ArrowDown" aria-label="Giu">▼</button>
                 </div>
             </div>
         </div>
