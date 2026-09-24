@@ -2,76 +2,92 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>C64 Remote Controller</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Portrait Orientation Alert: prompts user to rotate phone -->
+    <div id="rotate-prompt-overlay">
+        <div class="rotate-card">
+            <div class="phone-icon-anim">📱</div>
+            <h2>Ruota il Telefono</h2>
+            <p>Per visualizzare i controlli a <b>sinistra</b> e a <b>destra</b> dello schermo, ruota il telefono in <b>Orizzontale (Landscape)</b>.</p>
+            <button id="btn-force-landscape" class="btn btn-primary">⛶ Attiva Schermo Intero</button>
+        </div>
+    </div>
+
+    <!-- Main Game App Container (Full Viewport Landscape) -->
     <div id="app-container">
-        <!-- Header -->
+        <!-- Floating Mini Top Bar -->
         <header id="top-bar">
-            <span class="logo">🕹️ C64 REMOTE CONTROLLER</span>
-            <div class="actions">
-                <div class="size-selector">
-                    <span class="size-label">Dimensione:</span>
-                    <button class="btn-size" data-size="1x">1X</button>
-                    <button class="btn-size" data-size="2x">2X</button>
-                    <button class="btn-size active" data-size="3x">3X (1152px)</button>
-                    <button class="btn-size" data-size="fit">Adatta</button>
-                </div>
-                <button id="btn-keyboard" class="icon-btn" title="Apri tastiera per digitare nomi">⌨️</button>
+            <div class="top-left">
+                <span class="logo">🕹️ C64 CONTROLLER</span>
+                <span id="conn-badge" class="badge disconnected">Disconnesso</span>
+            </div>
+            <div class="top-center">
+                <span id="room-badge" class="room-pill hidden">Stanza: <b id="room-code-label">-</b></span>
+            </div>
+            <div class="top-right">
+                <button id="btn-unmute-header" class="icon-btn" title="Audio (Muto/Attivo)">🔇</button>
+                <button id="btn-keyboard" class="icon-btn" title="Tastiera per Nomi">⌨️ Nomi</button>
                 <button id="btn-fullscreen" class="icon-btn" title="Schermo intero">⛶</button>
             </div>
             <input type="text" id="mobile-keyboard-input" style="opacity: 0; position: absolute; left: -9999px; width: 1px; height: 1px;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         </header>
 
-        <!-- Video Screen Container -->
-        <div id="video-wrapper">
-            <video id="gameVideo" class="size-3x" autoplay playsinline></video>
-            
-            <!-- Connection & Status Overlay -->
-            <div id="status-overlay">
-                <div class="card">
-                    <h2>🎮 Unisciti alla Partita</h2>
-                    <p id="status-message">Inserisci l'ID Stanza fornito dal Giocatore 1:</p>
-                    <div id="join-form">
-                        <input type="text" id="room-input" placeholder="Es. c64-abc12" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                        <button id="btn-connect" class="btn btn-primary">Entra in Partita</button>
+        <!-- Main Screen & Flanking Controls Area -->
+        <div id="gameplay-area">
+            <!-- LEFT CONTROLS: D-PAD (Left Thumb) -->
+            <div id="controls-left" class="controller-flank">
+                <div class="dpad-box">
+                    <button id="btn-up" class="dpad-btn dpad-up" data-key="ArrowUp" aria-label="Su">▲</button>
+                    <div class="dpad-row">
+                        <button id="btn-left" class="dpad-btn dpad-left" data-key="ArrowLeft" aria-label="Sinistra">◄</button>
+                        <div class="dpad-core"></div>
+                        <button id="btn-right" class="dpad-btn dpad-right" data-key="ArrowRight" aria-label="Destra">►</button>
                     </div>
-                    <div id="loader" class="spinner hidden"></div>
+                    <button id="btn-down" class="dpad-btn dpad-down" data-key="ArrowDown" aria-label="Giu">▼</button>
                 </div>
             </div>
 
-            <!-- Audio Unmute Prompt -->
-            <div id="audio-prompt" class="hidden">
-                <button id="btn-unmute">🔊 Clicca qui per attivare l'Audio</button>
-            </div>
+            <!-- CENTER: VIDEO SCREEN -->
+            <div id="screen-center">
+                <div id="video-wrapper">
+                    <video id="gameVideo" autoplay playsinline webkit-playsinline muted></video>
 
-            <!-- In-Game Status Notification Banner -->
-            <div id="game-banner" class="hidden"></div>
-        </div>
+                    <!-- Connection & Status Overlay -->
+                    <div id="status-overlay">
+                        <div class="card">
+                            <h2>🎮 Connetti Telecomando</h2>
+                            <p id="status-message">Inserisci l'ID Stanza visualizzato sul Mac:</p>
+                            <div id="join-form">
+                                <input type="text" id="room-input" placeholder="Es. c64-abc12" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                                <button id="btn-connect" class="btn btn-primary">ENTRA</button>
+                            </div>
+                            <div id="loader" class="spinner hidden"></div>
+                        </div>
+                    </div>
 
-        <!-- Touch / On-Screen Controls for Mobile/Tablet -->
-        <div id="virtual-controls">
-            <div class="dpad-container">
-                <button id="btn-up" class="dpad-btn up" data-key="ArrowUp">▲</button>
-                <div class="dpad-middle">
-                    <button id="btn-left" class="dpad-btn left" data-key="ArrowLeft">◄</button>
-                    <div class="dpad-center"></div>
-                    <button id="btn-right" class="dpad-btn right" data-key="ArrowRight">►</button>
+                    <!-- In-Game Status Notification Banner -->
+                    <div id="game-banner" class="hidden"></div>
                 </div>
-                <button id="btn-down" class="dpad-btn down" data-key="ArrowDown">▼</button>
             </div>
 
-            <div class="action-container">
-                <button id="btn-fire" class="fire-btn" data-key="Space">FIRE / KICK<br><small>(SPAZIO)</small></button>
+            <!-- RIGHT CONTROLS: FIRE & ACTIONS (Right Thumb) -->
+            <div id="controls-right" class="controller-flank">
+                <div class="action-box">
+                    <button id="btn-fire" class="fire-btn" data-key="Space">
+                        <span class="fire-title">FIRE</span>
+                        <span class="fire-sub">TIRO / ACCEL</span>
+                    </button>
+                    <div class="sub-actions">
+                        <button id="btn-enter" class="sub-btn enter-btn" data-key="Enter" title="Conferma / Invio">INVIO</button>
+                        <button id="btn-f5" class="sub-btn f-btn" data-key="F5" title="Opzioni / F5">F5</button>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <!-- Footer / Instructions -->
-        <footer id="footer-info">
-            <span>⌨️ <b>Tastiera:</b> Digita lettere/numeri per i <b>nomi piloti</b>, <b>Invio</b> per confermare, <b>Frecce</b> per guidare, <b>Spazio</b> per start/tiro.</span>
-        </footer>
     </div>
 
     <script src="peerjs.min.js"></script>

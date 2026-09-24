@@ -1,5 +1,5 @@
 /**
- * C64 Remote Controller - WebRTC P2P Receiver & Input Controller
+ * C64 Remote Controller - WebRTC P2P Receiver & Input Controller (Landscape)
  */
 (function() {
     let peer = null;
@@ -20,16 +20,60 @@
     const loader = document.getElementById('loader');
     const joinForm = document.getElementById('join-form');
     const gameVideo = document.getElementById('gameVideo');
-    const audioPrompt = document.getElementById('audio-prompt');
-    const btnUnmute = document.getElementById('btn-unmute');
+    const btnUnmuteHeader = document.getElementById('btn-unmute-header');
     const btnFullscreen = document.getElementById('btn-fullscreen');
+    const btnForceLandscape = document.getElementById('btn-force-landscape');
     const gameBanner = document.getElementById('game-banner');
+    const connBadge = document.getElementById('conn-badge');
+    const roomBadge = document.getElementById('room-badge');
+    const roomCodeLabel = document.getElementById('room-code-label');
 
-    function showBanner(text, ms = 4000) {
+    function showBanner(text, ms = 3500) {
         if (!gameBanner) return;
         gameBanner.innerText = text;
         gameBanner.classList.remove('hidden');
         setTimeout(() => gameBanner.classList.add('hidden'), ms);
+    }
+
+    // Force / request landscape orientation
+    function tryLockLandscape() {
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            } else if (screen.lockOrientation) {
+                screen.lockOrientation('landscape');
+            } else if (screen.webkitLockOrientation) {
+                screen.webkitLockOrientation('landscape');
+            } else if (screen.mozLockOrientation) {
+                screen.mozLockOrientation('landscape');
+            }
+        } catch (e) {}
+    }
+
+    function toggleFullscreen() {
+        const el = document.documentElement;
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+            if (req) {
+                req.call(el).then(() => {
+                    tryLockLandscape();
+                }).catch(() => {});
+            }
+        } else {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exit) exit.call(document).catch(() => {});
+        }
+        tryLockLandscape();
+    }
+
+    if (btnFullscreen) {
+        btnFullscreen.addEventListener('click', toggleFullscreen);
+    }
+    if (btnForceLandscape) {
+        btnForceLandscape.addEventListener('click', () => {
+            toggleFullscreen();
+            tryLockLandscape();
+        });
     }
 
     function calculateBitmask() {
@@ -54,36 +98,16 @@
 
     // Mapping from DOM event.code to Commodore 64 8x8 CIA1 Keyboard Matrix indices (0-63)
     const C64_KEY_MATRIX_MAP = {
-        // Letters (A-Z)
         'KeyA': 31, 'KeyB': 50, 'KeyC': 48, 'KeyD': 33, 'KeyE': 19,
         'KeyF': 34, 'KeyG': 35, 'KeyH': 36, 'KeyI': 24, 'KeyJ': 37,
         'KeyK': 38, 'KeyL': 39, 'KeyM': 52, 'KeyN': 51, 'KeyO': 25,
         'KeyP': 26, 'KeyQ': 17, 'KeyR': 20, 'KeyS': 32, 'KeyT': 21,
         'KeyU': 23, 'KeyV': 49, 'KeyW': 18, 'KeyX': 47, 'KeyY': 22, 'KeyZ': 46,
-
-        // Digits (0-9)
-        'Digit0': 1, 'Digit1': 2, 'Digit2': 3, 'Digit3': 4, 'Digit4': 5,
-        'Digit5': 6, 'Digit6': 7, 'Digit7': 8, 'Digit8': 9, 'Digit9': 10,
-        'Numpad0': 1, 'Numpad1': 2, 'Numpad2': 3, 'Numpad3': 4, 'Numpad4': 5,
-        'Numpad5': 6, 'Numpad6': 7, 'Numpad7': 8, 'Numpad8': 9, 'Numpad9': 10,
-
-        // Controls & Editing
-        'Enter': 43,
-        'NumpadEnter': 43,
-        'Space': 59,
-        'Backspace': 15,
-        'Delete': 15,
-        'Escape': 30,
-
-        // Function keys
-        'F1': 60, 'F2': 60,
-        'F3': 61, 'F4': 61,
-        'F5': 62, 'F6': 62,
-        'F7': 63, 'F8': 63,
-
-        // Modifiers & Punctuation
-        'ShiftLeft': 45, 'ShiftRight': 56,
-        'Period': 54, 'Comma': 53, 'Slash': 55, 'Equal': 42, 'Minus': 12, 'Semicolon': 41
+        'Digit0': 10, 'Digit1': 1, 'Digit2': 2, 'Digit3': 3, 'Digit4': 4,
+        'Digit5': 5, 'Digit6': 6, 'Digit7': 7, 'Digit8': 8, 'Digit9': 9,
+        'Enter': 43, 'NumpadEnter': 43, 'Space': 59,
+        'Backspace': 15, 'Delete': 15, 'Escape': 30,
+        'F1': 60, 'F2': 60, 'F3': 61, 'F4': 61, 'F5': 62, 'F6': 62, 'F7': 63, 'F8': 63
     };
 
     const C64_CHAR_FALLBACK = {
@@ -92,8 +116,8 @@
         'K': 38, 'L': 39, 'M': 52, 'N': 51, 'O': 25,
         'P': 26, 'Q': 17, 'R': 20, 'S': 32, 'T': 21,
         'U': 23, 'V': 49, 'W': 18, 'X': 47, 'Y': 22, 'Z': 46,
-        '0': 1, '1': 2, '2': 3, '3': 4, '4': 5,
-        '5': 6, '6': 7, '7': 8, '8': 9, '9': 10,
+        '0': 10, '1': 1, '2': 2, '3': 3, '4': 4,
+        '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
         ' ': 59, 'ENTER': 43, 'BACKSPACE': 15
     };
 
@@ -108,28 +132,33 @@
         return undefined;
     }
 
-    function sendKeyPress(keyCode) {
-        if (conn && conn.open) {
-            conn.send({ type: 'KEY_PRESS', keyCode });
-        }
-    }
-
     function sendC64Key(matrixIndex, action) {
         if (conn && conn.open) {
             conn.send({ type: 'C64_KEY', action, matrixIndex });
         }
     }
 
+    function pulseC64Key(matrixIndex, durationMs = 120) {
+        sendC64Key(matrixIndex, 'down');
+        setTimeout(() => sendC64Key(matrixIndex, 'up'), durationMs);
+    }
+
     function connectToHost(roomId) {
-        roomId = roomId.trim();
+        roomId = (roomId || '').trim();
         if (!roomId) {
             alert("Inserisci un ID Stanza valido!");
             return;
         }
 
-        joinForm.classList.add('hidden');
-        loader.classList.remove('hidden');
-        statusMessage.innerText = `Connessione alla stanza ${roomId}...`;
+        tryLockLandscape();
+
+        if (joinForm) joinForm.classList.add('hidden');
+        if (loader) loader.classList.remove('hidden');
+        if (statusMessage) statusMessage.innerText = `Connessione alla stanza ${roomId}...`;
+        if (connBadge) {
+            connBadge.className = 'badge connecting';
+            connBadge.innerText = 'CONNESSIONE...';
+        }
 
         if (peer) {
             try { peer.destroy(); } catch (e) {}
@@ -139,132 +168,139 @@
 
         peer.on('open', (id) => {
             console.log("Client Peer open with ID:", id);
-            statusMessage.innerText = `Contatto il Giocatore 1...`;
+            if (statusMessage) statusMessage.innerText = `Contatto il server C64...`;
 
             conn = peer.connect(roomId, { reliable: true });
 
             conn.on('open', () => {
                 console.log("DataChannel open with Host!");
-                statusMessage.innerText = "Connesso! Ricezione video in corso...";
-                showBanner("Connesso al Giocatore 1! In attesa dello streaming...");
+                // Sblocca subito il controller e nascondi overlay
+                if (statusOverlay) statusOverlay.classList.add('hidden');
+                if (loader) loader.classList.add('hidden');
+                if (connBadge) {
+                    connBadge.className = 'badge connected';
+                    connBadge.innerText = 'CONNESSO';
+                }
+                if (roomBadge && roomCodeLabel) {
+                    roomCodeLabel.innerText = roomId;
+                    roomBadge.classList.remove('hidden');
+                }
+                showBanner("🎮 Telecomando connesso! Frecce a sinistra, Fuoco a destra");
             });
 
             conn.on('data', (data) => {
-                if (data.type === 'BANNER') {
+                if (data && data.type === 'BANNER') {
                     showBanner(data.text);
                 }
             });
 
             conn.on('close', () => {
-                statusOverlay.classList.remove('hidden');
-                joinForm.classList.remove('hidden');
-                loader.classList.add('hidden');
-                statusMessage.innerText = "La partita è terminata o l'Host si è disconnesso.";
+                if (statusOverlay) statusOverlay.classList.remove('hidden');
+                if (joinForm) joinForm.classList.remove('hidden');
+                if (loader) loader.classList.add('hidden');
+                if (statusMessage) statusMessage.innerText = "La partita è terminata o il server si è disconnesso.";
+                if (connBadge) {
+                    connBadge.className = 'badge disconnected';
+                    connBadge.innerText = 'DISCONNESSO';
+                }
             });
 
             conn.on('error', (err) => {
                 console.error("Connection error:", err);
-                statusMessage.innerText = "Errore di connessione: " + err;
-                joinForm.classList.remove('hidden');
-                loader.classList.add('hidden');
+                if (statusMessage) statusMessage.innerText = "Errore di connessione: " + err;
+                if (joinForm) joinForm.classList.remove('hidden');
+                if (loader) loader.classList.add('hidden');
+                if (connBadge) {
+                    connBadge.className = 'badge disconnected';
+                    connBadge.innerText = 'ERRORE';
+                }
             });
         });
 
         // Listen for incoming call from Host with game audio/video stream
         peer.on('call', (call) => {
             console.log("Incoming media call from Host!");
-            call.answer(); // Answer without local media stream
+            call.answer(); // Answer without local mic/camera
 
             call.on('stream', (remoteStream) => {
                 console.log("Received remote MediaStream from Host!");
-                gameVideo.srcObject = remoteStream;
-
-                gameVideo.play().then(() => {
-                    statusOverlay.classList.add('hidden');
-                    showBanner("🎮 Sei la Squadra Rossa (Giocatore 2)! Frecce per muoverti, Spazio per tirare");
-                }).catch((err) => {
-                    console.warn("Autoplay with sound blocked:", err);
-                    statusOverlay.classList.add('hidden');
-                    audioPrompt.classList.remove('hidden');
-                });
+                if (gameVideo) {
+                    gameVideo.srcObject = remoteStream;
+                    gameVideo.muted = true; // Necessario per garantire autoplay su iOS Safari e Chrome Android
+                    gameVideo.play().then(() => {
+                        if (statusOverlay) statusOverlay.classList.add('hidden');
+                    }).catch((err) => {
+                        console.warn("Autoplay muted failed:", err);
+                        if (statusOverlay) statusOverlay.classList.add('hidden');
+                    });
+                }
             });
 
             call.on('close', () => {
-                statusOverlay.classList.remove('hidden');
-                statusMessage.innerText = "Streaming interrotto.";
+                console.log("Stream closed");
             });
         });
 
         peer.on('error', (err) => {
             console.error("PeerJS error:", err);
-            statusOverlay.classList.remove('hidden');
-            joinForm.classList.remove('hidden');
-            loader.classList.add('hidden');
+            if (statusOverlay) statusOverlay.classList.remove('hidden');
+            if (joinForm) joinForm.classList.remove('hidden');
+            if (loader) loader.classList.add('hidden');
+            if (connBadge) {
+                connBadge.className = 'badge disconnected';
+                connBadge.innerText = 'NON TROVATO';
+            }
             if (err.type === 'peer-unavailable') {
-                statusMessage.innerText = "Stanza non trovata! Verifica l'ID e che l'Host sia attivo.";
+                if (statusMessage) statusMessage.innerText = "Stanza non trovata! Verifica che il server C64 sia attivo.";
             } else {
-                statusMessage.innerText = "Errore: " + err.type;
+                if (statusMessage) statusMessage.innerText = "Errore: " + err.type;
             }
         });
     }
 
-    // Audio unmute button handler
-    btnUnmute.addEventListener('click', () => {
-        gameVideo.muted = false;
-        gameVideo.play().then(() => {
-            audioPrompt.classList.add('hidden');
-        }).catch(() => {});
-    });
-
-    // Fullscreen button
-    btnFullscreen.addEventListener('click', () => {
-        const wrapper = document.getElementById('video-wrapper');
-        if (!document.fullscreenElement) {
-            wrapper.requestFullscreen().catch(() => {});
-        } else {
-            document.exitFullscreen().catch(() => {});
-        }
-    });
-
-    // Size Selector (1X, 2X, 3X, Fit)
-    const sizeButtons = document.querySelectorAll('.btn-size');
-    sizeButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            sizeButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const size = btn.dataset.size;
-            gameVideo.className = 'size-' + size;
+    // Audio unmute toggle button in top bar
+    if (btnUnmuteHeader && gameVideo) {
+        btnUnmuteHeader.addEventListener('click', () => {
+            if (gameVideo.muted) {
+                gameVideo.muted = false;
+                btnUnmuteHeader.innerText = '🔊';
+                btnUnmuteHeader.title = 'Disattiva Audio';
+                showBanner('🔊 Audio attivo!', 2000);
+            } else {
+                gameVideo.muted = true;
+                btnUnmuteHeader.innerText = '🔇';
+                btnUnmuteHeader.title = 'Attiva Audio';
+                showBanner('🔇 Audio mutato', 2000);
+            }
         });
-    });
+    }
 
     // Connect button click
-    btnConnect.addEventListener('click', () => {
-        connectToHost(roomInput.value);
-    });
-
-    roomInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+    if (btnConnect && roomInput) {
+        btnConnect.addEventListener('click', () => {
             connectToHost(roomInput.value);
-        }
-    });
+        });
 
-    // Keyboard handlers (Real-time C64 Matrix key dispatch + Joystick)
+        roomInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                connectToHost(roomInput.value);
+            }
+        });
+    }
+
+    // Hardware Keyboard event handlers
     window.addEventListener('keydown', (e) => {
-        // Do not intercept if typing into the connect form input
         if (document.activeElement === roomInput) return;
 
         if (e.key.startsWith('Arrow') || e.key === ' ' || e.key.startsWith('F') || e.key === 'Enter' || e.key === 'Backspace') {
             e.preventDefault();
         }
 
-        // 1. Dispatch C64 Matrix key event to Host
         const matrixIndex = getC64MatrixIndex(e);
         if (matrixIndex !== undefined) {
             sendC64Key(matrixIndex, 'down');
         }
 
-        // 2. Joystick directional state for Player 2
         let changed = false;
         if (e.code === 'ArrowUp') {
             if (!inputState.up) { inputState.up = true; changed = true; }
@@ -274,13 +310,11 @@
             if (!inputState.left) { inputState.left = true; changed = true; }
         } else if (e.code === 'ArrowRight') {
             if (!inputState.right) { inputState.right = true; changed = true; }
-        } else if (e.code === 'Space') {
+        } else if (e.code === 'Space' || e.code === 'Enter') {
             if (!inputState.fire) { inputState.fire = true; changed = true; }
         }
 
-        if (changed) {
-            updateAndSendInput();
-        }
+        if (changed) updateAndSendInput();
     });
 
     window.addEventListener('keyup', (e) => {
@@ -304,48 +338,46 @@
             if (inputState.left) { inputState.left = false; changed = true; }
         } else if (e.code === 'ArrowRight') {
             if (inputState.right) { inputState.right = false; changed = true; }
-        } else if (e.code === 'Space') {
+        } else if (e.code === 'Space' || e.code === 'Enter') {
             if (inputState.fire) { inputState.fire = false; changed = true; }
         }
 
-        if (changed) {
-            updateAndSendInput();
-        }
+        if (changed) updateAndSendInput();
     });
 
-    // Mobile / On-Screen Keyboard toggle
+    // Mobile / On-Screen Keyboard toggle for pilot names
     const btnKeyboard = document.getElementById('btn-keyboard');
     const mobileKeyboardInput = document.getElementById('mobile-keyboard-input');
     if (btnKeyboard && mobileKeyboardInput) {
         btnKeyboard.addEventListener('click', (e) => {
             e.preventDefault();
             mobileKeyboardInput.focus();
-            showBanner("⌨️ Tastiera mobile attiva: digita i nomi!", 3000);
+            showBanner("⌨️ Tastiera attiva: digita il nome!", 3000);
         });
 
-        mobileKeyboardInput.addEventListener('keydown', (e) => {
-            const matrixIndex = getC64MatrixIndex(e);
-            if (matrixIndex !== undefined) {
-                sendC64Key(matrixIndex, 'down');
-            }
-        });
-
-        mobileKeyboardInput.addEventListener('input', (e) => {
+        mobileKeyboardInput.addEventListener('input', () => {
             const val = mobileKeyboardInput.value;
             if (val) {
                 const lastChar = val.slice(-1).toUpperCase();
                 const matrixIndex = C64_CHAR_FALLBACK[lastChar];
                 if (matrixIndex !== undefined) {
-                    sendC64Key(matrixIndex, 'down');
-                    setTimeout(() => sendC64Key(matrixIndex, 'up'), 100);
+                    pulseC64Key(matrixIndex, 100);
                 }
             }
             mobileKeyboardInput.value = '';
         });
+
+        mobileKeyboardInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                pulseC64Key(43, 120); // Return
+            } else if (e.key === 'Backspace') {
+                pulseC64Key(15, 120); // Delete
+            }
+        });
     }
 
-    // Touch virtual buttons
-    const bindTouchBtn = (id, stateKey) => {
+    // Touch & Pointer virtual buttons handler
+    const bindTouchButton = (id, stateKey) => {
         const btn = document.getElementById(id);
         if (!btn) return;
 
@@ -371,17 +403,42 @@
         btn.addEventListener('mouseleave', end);
     };
 
-    bindTouchBtn('btn-up', 'up');
-    bindTouchBtn('btn-down', 'down');
-    bindTouchBtn('btn-left', 'left');
-    bindTouchBtn('btn-right', 'right');
-    bindTouchBtn('btn-fire', 'fire');
+    bindTouchButton('btn-up', 'up');
+    bindTouchButton('btn-down', 'down');
+    bindTouchButton('btn-left', 'left');
+    bindTouchButton('btn-right', 'right');
+    bindTouchButton('btn-fire', 'fire');
 
-    // Auto-connect if ?room= or ?id= is present in URL
+    // Sub-action buttons (INVIO / F5)
+    const btnEnter = document.getElementById('btn-enter');
+    if (btnEnter) {
+        const handleEnter = (e) => {
+            e.preventDefault();
+            btnEnter.classList.add('active');
+            pulseC64Key(43, 150); // Return key
+            setTimeout(() => btnEnter.classList.remove('active'), 150);
+        };
+        btnEnter.addEventListener('touchstart', handleEnter, { passive: false });
+        btnEnter.addEventListener('mousedown', handleEnter);
+    }
+
+    const btnF5 = document.getElementById('btn-f5');
+    if (btnF5) {
+        const handleF5 = (e) => {
+            e.preventDefault();
+            btnF5.classList.add('active');
+            pulseC64Key(62, 150); // F5
+            setTimeout(() => btnF5.classList.remove('active'), 150);
+        };
+        btnF5.addEventListener('touchstart', handleF5, { passive: false });
+        btnF5.addEventListener('mousedown', handleF5);
+    }
+
+    // Auto-connect if ?room= or ?id= is in URL
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room') || urlParams.get('id');
     if (roomParam) {
-        roomInput.value = roomParam;
+        if (roomInput) roomInput.value = roomParam;
         connectToHost(roomParam);
     }
 })();
