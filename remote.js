@@ -434,6 +434,23 @@
         btnF5.addEventListener('mousedown', handleF5);
     }
 
+    // Screen Size Selector (1X, 2X, 3X, Fit) - Default 3X
+    if (gameVideo) {
+        gameVideo.className = 'size-3x';
+    }
+    const sizeBtns = document.querySelectorAll('.btn-size-opt');
+    sizeBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            sizeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const size = btn.dataset.size;
+            if (gameVideo) {
+                gameVideo.className = 'size-' + size;
+            }
+        });
+    });
+
     // Auto-connect if ?room= or ?id= is in URL
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room') || urlParams.get('id');
